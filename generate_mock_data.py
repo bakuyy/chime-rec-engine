@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+from pathlib import Path
 
-def create_mock_interactions(n_users, n_songs, sparsity):
+def create_mock_interactions(n_users, n_songs, sparsity,save):
     '''
     create mock data for user interactions with songs
     parameters:
@@ -29,11 +30,16 @@ def create_mock_interactions(n_users, n_songs, sparsity):
     #removes duplicates for user-song combinations (same user can't rate the same song more than once)
     interactions = interactions.drop_duplicates(subset=['user_id', 'song_id'])
 
+    if save:
+        path = Path('training_data/data.csv')
+        interactions.to_csv(path, index=False)
+
+
     #data
     return interactions.sort_values(['user_id','timestamp'])
 
 #mock_data
-interactions_df = create_mock_interactions(100,500,0.1)
+interactions_df = create_mock_interactions(50,200,0.1, True)
 
 #generate user-item matrix
 user_item_matrix = interactions_df.pivot(

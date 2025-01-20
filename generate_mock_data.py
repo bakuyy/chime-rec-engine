@@ -22,7 +22,7 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
         "user_id": np.random.randint(0, n_users, num_interactions),
         "song_id" : np.random.randint(0, n_songs, num_interactions),
         "interaction": np.random.choice([0,1,2], num_interactions,p=[0.3,0.4,0.3]),
-        "listen_count":np.random.choice(range(1,51), num_interactions, p=np.linspace(0.5, 0.01, 50)/sum(np.linspace(0.5, 0.01, 50))),
+        "listen_count":np.random.choice(range(1,6), num_interactions, p=np.linspace(0.5, 0.1, 5)/sum(np.linspace(0.5, 0.1, 5))),
         "timestamp":[datetime.now() - timedelta(days=np.random.randint(0, 365)) 
                      for _ in range(num_interactions)]
     })

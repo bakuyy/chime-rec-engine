@@ -23,7 +23,7 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
     song_weights = song_weights/sum(song_weights)
 
     user_ids = np.random.choice(
-        np.arrange(n_users),
+        np.arange(n_users),
         size=num_interactions,
         p=user_weights #active users appear more
     )

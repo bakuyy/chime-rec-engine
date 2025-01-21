@@ -16,50 +16,30 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
     num_interactions = int(total_possible_interactions * sparsity)
 
     # user power distribution to create more randomness in data
-    user_weights = np.random.power(0.3, size=n_users)
-    user_weights = user_weights/sum(user_weights)
-
     song_weights = np.random.exponential(0.3, size=n_songs)
     song_weights = song_weights/sum(song_weights)
 
-    user_ids = np.random.choice(
-        np.arange(n_users),
-        size=num_interactions,
-        p=user_weights #active users appear more
-    )
+    # make some songs unplayed
+    zero_mask = np.random.random(n_songs)<0.2
+    song_weights[zero_mask] = 0
 
+    song_weights = song_weights/sum(song_weights)
+
+    user_ids = np.random.randint(0,n_users,num_interactions)
     song_ids = np.random.choice(
         np.arange(n_songs),
         size=num_interactions,
         p=song_weights #active users appear more
     )
 
-    user_prefs = np.random.random(n_users)
-    interaction_probs = []
-    for user_id in user_ids:
-        # critical users : more likely to dislike
-        if user_prefs[user_id] < 0.2:  
-            probs = [0.5, 0.3, 0.2] 
-        
-        # ethusiastic users: likely to chime
-        elif user_prefs[user_id] > 0.8:  
-            probs = [0.1, 0.3, 0.6] 
-
-        # original distribution
-        else:  
-            probs = [0.3, 0.4, 0.3]  
-        interaction_probs.append(probs)
-
-
-
     # p.random.randint takes in 3 paramters below: (low, high, size)
     # (lower bound, upper bound, how many numbers to generate)
     # for chime: the interactions will be 0 = dislike, 1 = like, 2 = chime
+    #removes duplicates for user-song combinations (same user can't rate the same song more than once)
     interactions = pd.DataFrame({
         "user_id": user_ids,
-        "song_id" : song_ids,
-        "interaction": [np.random.choice([0,1,2], num_interactions,p=probs) for probs in interaction_probs],
-        "listen_count":np.random.choice(range(1,6), num_interactions, p=[0.5, 0.25, 0.15, 0.07, 0.03]),
+        "song_id": song_ids,
+        "listen_count":np.random.choice(range(0,5), num_interactions, p=[0.2, 0.4, 0.3, 0.07, 0.03]),
         "timestamp": [
             datetime.now() - timedelta(
                 days=np.random.randint(0, 365),
@@ -67,10 +47,22 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
                 minutes=np.random.randint(0, 60)
             ) for _ in range(num_interactions)
         ]
-    })
+    }).drop_duplicates(subset=["user_id", "song_id"])
 
-    #removes duplicates for user-song combinations (same user can't rate the same song more than once)
-    interactions = interactions.drop_duplicates(subset=['user_id', 'song_id'])
+    user_prefs = np.random.random(n_users)
+    def assign_interaction(user_id):
+        if user_prefs[user_id] < 0.4:  # critical users: more likely to dislike
+            return np.random.choice([0, 1, 2], p=[0.7, 0.2, 0.1])
+        elif user_prefs[user_id] > 0.8:  # enthusiastic users: more likely to chime
+            return np.random.choice([0, 1, 2], p=[0.2, 0.5, 0.3])
+        else:  # neutral users
+            return np.random.choice([0, 1, 2], p=[0.5, 0.3, 0.2])
+
+
+    interactions["interaction"] = interactions["user_id"].apply(assign_interaction)
+    # interactions["interaction"] = interactions.apply(
+    #     lambda row: 0 if row["listen_count"] == 0 else row["interaction"], axis=1
+    # )
 
     if save:
         path = Path('training_data/data.csv')

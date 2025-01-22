@@ -52,11 +52,11 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
     user_prefs = np.random.random(n_users)
     def assign_interaction(user_id):
         if user_prefs[user_id] < 0.4:  # critical users: more likely to dislike
-            return np.random.choice([0, 1, 2], p=[0.7, 0.2, 0.1])
+            return np.random.choice([-1, 1, 2], p=[0.7, 0.2, 0.1])
         elif user_prefs[user_id] > 0.8:  # enthusiastic users: more likely to chime
-            return np.random.choice([0, 1, 2], p=[0.2, 0.5, 0.3])
+            return np.random.choice([-1, 1, 2], p=[0.2, 0.5, 0.3])
         else:  # neutral users
-            return np.random.choice([0, 1, 2], p=[0.5, 0.3, 0.2])
+            return np.random.choice([-1, 1, 2], p=[0.5, 0.3, 0.2])
 
 
     interactions["interaction"] = interactions["user_id"].apply(assign_interaction)

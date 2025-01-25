@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from pathlib import Path
-
+from random import sample
 def create_mock_interactions(n_users, n_songs, sparsity,save):
     '''
     create mock data for user interactions with songs
@@ -32,6 +32,29 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
         p=song_weights #active users appear more
     )
 
+    genres = [
+    "Rock", "Pop", "Hip-Hop", "Jazz", "Classical", "Electronic", "Country", "R&B", "Reggae", "Blues", 
+    "Funk", "Soul", "Gospel", "Metal", "Punk", "Alternative", "Folk", "Latin", "Disco", "K-Pop", 
+    "House", "Techno", "Trap", "Ambient", "World", "Ska", "Indie", "Grunge", "Opera", "Dubstep", 
+    "Lo-fi", "Afrobeats", "Synthwave", "Chillstep", "DrumAndBass", "EDM", "Dancehall", "Trance", "Emo", "Acoustic"
+    ]
+
+    hashtags = [
+    "#InMyFeelings", "#TikTokViral", "#SadBoyHours", "#Heartbreak", "#Mood", "#Emotional", "#Relatable", "#LateNightVibes", "#Soulful", "#LoveSong", 
+    "#DeepThoughts", "#ChillVibes", "#BrokenHeart", "#CryingInTheClub", "#LostInThought", "#MusicToFeelTo", "#SelfReflection", "#LifeFeels", "#Dreamy", 
+    "#OnMyMind", "#FeelingsMatter", "#MusicMood", "#StoryOfMyLife", "#RawEmotions", "#ViralSound", "#LostAndFound", "#CurrentMood", "#InnerPeace", 
+    "#HealingThroughMusic", "#FeelsTrain", "#JustVibing", "#AloneButNotLonely", "#MusicTherapy"
+    ]
+
+    song_genres = {}
+    song_hashtags = {}
+    for song_id in range(n_songs):
+        num_genres = np.random.randint(0,len(genres)//2)
+        num_hashtags = np.random.randint(0,len(hashtags)//2)
+
+        song_genres[song_id] = np.random.choice(genres, num_genres, replace=False)
+        song_hashtags[song_id] = np.random.choice(hashtags,num_hashtags, replace=False)
+
     # p.random.randint takes in 3 paramters below: (low, high, size)
     # (lower bound, upper bound, how many numbers to generate)
     # for chime: the interactions will be 0 = dislike, 1 = like, 2 = chime
@@ -58,22 +81,20 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
         else:  # neutral users
             return np.random.choice([-1, 1, 2], p=[0.5, 0.3, 0.2])
 
-
     interactions["interaction"] = interactions["user_id"].apply(assign_interaction)
-    # interactions["interaction"] = interactions.apply(
-    #     lambda row: 0 if row["listen_count"] == 0 else row["interaction"], axis=1
-    # )
+    interactions["genres"] = interactions["song_id"].apply(lambda x: ",".join(song_genres[x]))
+    interactions["hashtag"] = interactions["song_id"].apply(lambda x: ",".join(song_hashtags[x]))
 
     if save:
         path = Path('training_data/data.csv')
         interactions.to_csv(path, index=False)
 
-
     #data
     return interactions.sort_values(['user_id','timestamp'])
 
 #mock_data
-interactions_df = create_mock_interactions(100,500,0.1, True)
+interactions_df = create_mock_interactions(100,500,0.1, False)
+
 
 #generate user-item matrix
 user_item_matrix = interactions_df.pivot(
@@ -83,5 +104,3 @@ user_item_matrix = interactions_df.pivot(
 ).fillna(0)
 
 print(interactions_df.head())
-
-

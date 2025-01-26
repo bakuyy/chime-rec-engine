@@ -3,6 +3,8 @@ import numpy as np
 from datetime import datetime, timedelta
 from pathlib import Path
 from random import sample
+from collections import defaultdict
+import random
 def create_mock_interactions(n_users, n_songs, sparsity,save):
     '''
     create mock data for user interactions with songs
@@ -52,7 +54,7 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
         num_genres = np.random.randint(0,len(genres)//2)
         num_hashtags = np.random.randint(0,len(hashtags)//2)
 
-        song_genres[song_id] = np.random.choice(genres, num_genres, replace=False)
+        song_genres[song_id]=random.sample(genres, num_genres)
         song_hashtags[song_id] = np.random.choice(hashtags,num_hashtags, replace=False)
 
     # p.random.randint takes in 3 paramters below: (low, high, size)
@@ -82,7 +84,7 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
             return np.random.choice([-1, 1, 2], p=[0.5, 0.3, 0.2])
 
     interactions["interaction"] = interactions["user_id"].apply(assign_interaction)
-    interactions["genres"] = interactions["song_id"].apply(lambda x: ",".join(song_genres[x]))
+    interactions["genres"] = interactions["song_id"].apply(lambda x: list(song_genres[x]))
     interactions["hashtag"] = interactions["song_id"].apply(lambda x: ",".join(song_hashtags[x]))
 
     if save:
@@ -93,7 +95,7 @@ def create_mock_interactions(n_users, n_songs, sparsity,save):
     return interactions.sort_values(['user_id','timestamp'])
 
 #mock_data
-interactions_df = create_mock_interactions(100,500,0.1, False)
+interactions_df = create_mock_interactions(100,500,0.1, True)
 
 
 #generate user-item matrix
